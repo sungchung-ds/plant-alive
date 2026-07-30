@@ -21,7 +21,7 @@ DHT dht(DHTPIN,DHTTYPE);
 
 // pump setting
 #define PUMP_PIN 23
-#define PUMP_ON_LEVEL -20
+#define PUMP_ON_LEVEL 10
 #define PUMP_OFF_LEVEL 45  
 bool pumpRunning = false;
 
