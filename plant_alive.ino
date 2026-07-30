@@ -31,6 +31,7 @@ bool pumpRunning = false;
 
 
 void setup() {
+  // initiate components 
   Serial.begin(115200);
   dht.begin();
   Wire.begin(21, 22);
@@ -40,6 +41,7 @@ void setup() {
   pinMode(PUMP_PIN, OUTPUT);
   digitalWrite(PUMP_PIN, LOW);
 
+  // initiate display
   display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
   display.clearDisplay();
   display.setTextColor(WHITE);
@@ -49,7 +51,6 @@ void setup() {
   display.display();
 
   delay(SCREEN_DELAY_MS);
-  
   display.clearDisplay();
 }
 
@@ -82,8 +83,8 @@ void loop() {
   } else {
     display.println("Error");
   }
-  display.display();
 
+  display.display();
   delay(SCREEN_DELAY_MS);
 
   display.clearDisplay();
@@ -97,7 +98,6 @@ void loop() {
     display.println("Error");
   }
   display.display();
-
   delay(SCREEN_DELAY_MS);
 
   // read moisture sensor data
@@ -121,7 +121,7 @@ void loop() {
   display.setCursor(0, 0);
 
   display.println("Soil Moist");
-  display.print(percent);
+  display.print(moisturePercent);
   display.println(" % ");
 
   display.display();
@@ -131,13 +131,13 @@ void loop() {
   if (!pumpRunning && moisturePercent < PUMP_ON_LEVEL) {
     digitalWrite(PUMP_PIN, HIGH);
     pumpRunning = true;
-    serial.print("Pump on");
+    Serial.print("Pump on");
   }
 
   if (pumpRunning && moisturePercent >= PUMP_OFF_LEVEL) {
     digitalWrite(PUMP_PIN, LOW);
     pumpRunning = false;
-    serial.print("pump off");
+    Serial.print("pump off");
   }
 
   // read light data 
@@ -146,6 +146,7 @@ void loop() {
   Serial.print("Light: ");
   Serial.println(lightRaw);
 
+  // display light data 
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
@@ -153,6 +154,7 @@ void loop() {
 
   display.println("Light");
   display.println(lightRaw);
+
   display.display();
   delay(SCREEN_DELAY_MS);
 }
