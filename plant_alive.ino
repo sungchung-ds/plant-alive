@@ -7,6 +7,7 @@
 #define OLED_ADDR   0x3C
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
+#define SCREEN_DELAY_MS 2000
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // soil moisture setting
@@ -47,89 +48,99 @@ void setup() {
   display.println("PlantAlive");
   display.display();
 
-  delay(2000);
+  delay(SCREEN_DELAY_MS);
   
   display.clearDisplay();
 }
 
 void loop() {
-
+  // read DHT sensor data
   float temp = dht.readTemperature();
   float humidity = dht.readHumidity();
+  bool dhtValid = !isnan(temp) && !isnan(humidity);
 
-  Serial.print("Temp: ");
-  Serial.print(temp);
-  Serial.println(" C ");
-  Serial.print(", Humidity: ");
-  Serial.print(humidity);
-  Serial.println(" % ");
+  if (dhtValid) {
+    Serial.print("Temp: ");
+    Serial.print(temp);
+    Serial.print(" C, Humidity: ");
+    Serial.print(humidity);
+    Serial.println(" %");
+  } else {
+    Serial.println("DHT read failed");
+  }
 
+
+  // display the data
   display.clearDisplay();
-
   display.setTextSize(2);
-  display.setCursor(0,0);
+  display.setCursor(0, 0);
+
   display.println("Temp");
-  display.print(temp);
-  display.println(" C ");
+  if (dhtValid) {
+    display.print(temp);
+    display.println(" C");
+  } else {
+    display.println("Error");
+  }
   display.display();
-  delay(2000);
+
+  delay(SCREEN_DELAY_MS);
 
   display.clearDisplay();
+  display.setCursor(0, 0);
 
-  display.setCursor(0,0);
   display.println("Humidity");
-  display.print(humidity);
-  display.println(" % ");
-
+  if (dhtValid) {
+    display.print(humidity);
+    display.println(" %");
+  } else {
+    display.println("Error");
+  }
   display.display();
 
-  delay(2000);
+  delay(SCREEN_DELAY_MS);
 
-  int moisture_raw = analogRead(MOISTURE_PIN);
-  float value_range = (float)(AIR_VALUE - WATER_VALUE);
-  float reading_adjusted = (float)(AIR_VALUE - moisture_raw);
-  float percent = (reading_adjusted / value_range) * 100.0;
-  // percent = constrain(percent, 0.0, 100.0);
+  // read moisture sensor data
+  int moistureRaw = analogRead(MOISTURE_PIN);
+
+  Serial.print("Raw: ");
+  Serial.print(moistureRaw);
+
+  // calibrate 
+  int moisturePercent = map(moistureRaw, AIR_VALUE, WATER_VALUE, 0, 100);
+  moisturePercent = constrain(moisturePercent, 0, 100);
 
   Serial.print("Moisture: ");
-  Serial.print(percent);
+  Serial.print(moisturePercent);
   Serial.println(" % ");
 
+  // display data
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
   display.setCursor(0, 0);
+
   display.println("Soil Moist");
   display.print(percent);
   display.println(" % ");
 
   display.display();
+  delay(SCREEN_DELAY_MS);
 
-  Serial.print("Raw: ");
-  Serial.print(moisture_raw);
-
-  int moisturePercent = map(
-    moisture_raw,
-    AIR_VALUE,
-    WATER_VALUE,
-    0,
-    100
-  );
-
-  moisturePercent = constrain(moisturePercent, 0, 100);
-
+  // pump control logic
   if (!pumpRunning && moisturePercent < PUMP_ON_LEVEL) {
     digitalWrite(PUMP_PIN, HIGH);
     pumpRunning = true;
+    serial.print("Pump on");
   }
 
   if (pumpRunning && moisturePercent >= PUMP_OFF_LEVEL) {
     digitalWrite(PUMP_PIN, LOW);
     pumpRunning = false;
+    serial.print("pump off");
   }
 
-  delay(2000);
-
+  // read light data 
   int lightRaw = analogRead(LIGHT_PIN);
 
   Serial.print("Light: ");
@@ -139,11 +150,9 @@ void loop() {
   display.setTextColor(WHITE);
   display.setTextSize(2);
   display.setCursor(0, 0);
+
   display.println("Light");
   display.println(lightRaw);
-
   display.display();
-
-  delay(2000);
-
+  delay(SCREEN_DELAY_MS);
 }
