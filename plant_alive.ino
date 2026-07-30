@@ -11,8 +11,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // soil moisture setting
 #define MOISTURE_PIN 27
-#define AIR_VALUE 3800 // lower bound
-#define WATER_VALUE 1200 // upper bound
+#define AIR_VALUE 4095 // lower bound
+#define WATER_VALUE 1270 // upper bound
 
 // temp and humid setting
 #define DHTPIN 18
@@ -21,7 +21,7 @@ DHT dht(DHTPIN,DHTTYPE);
 
 // pump setting
 #define PUMP_PIN 23
-#define PUMP_ON_LEVEL -20 
+#define PUMP_ON_LEVEL -20
 #define PUMP_OFF_LEVEL 45  
 bool pumpRunning = false;
 
@@ -43,8 +43,8 @@ void setup() {
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
-  display.setCursor(20, 20);
-  display.println("Hello");
+  display.setCursor(4, 24);
+  display.println("PlantAlive");
   display.display();
 
   delay(2000);
@@ -59,17 +59,25 @@ void loop() {
 
   Serial.print("Temp: ");
   Serial.print(temp);
+  Serial.println(" C ");
   Serial.print(", Humidity: ");
   Serial.print(humidity);
   Serial.println(" % ");
 
   display.clearDisplay();
 
-  display.setTextSize(1);
+  display.setTextSize(2);
   display.setCursor(0,0);
-  display.print("Temp: ");
-  display.println(temp);
-  display.print(", Humidity: ");
+  display.println("Temp");
+  display.print(temp);
+  display.println(" C ");
+  display.display();
+  delay(2000);
+
+  display.clearDisplay();
+
+  display.setCursor(0,0);
+  display.println("Humidity");
   display.print(humidity);
   display.println(" % ");
 
@@ -89,13 +97,16 @@ void loop() {
 
   display.clearDisplay();
   display.setTextColor(WHITE);
+  display.setTextSize(2);
   display.setCursor(0, 0);
-  display.setTextSize(1);
-  display.print("Soil Moisture: ");
+  display.println("Soil Moist");
   display.print(percent);
   display.println(" % ");
 
   display.display();
+
+  Serial.print("Raw: ");
+  Serial.print(moisture_raw);
 
   int moisturePercent = map(
     moisture_raw,
@@ -117,10 +128,21 @@ void loop() {
     pumpRunning = false;
   }
 
+  delay(2000);
+
   int lightRaw = analogRead(LIGHT_PIN);
 
   Serial.print("Light: ");
   Serial.println(lightRaw);
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(2);
+  display.setCursor(0, 0);
+  display.println("Light");
+  display.println(lightRaw);
+
+  display.display();
 
   delay(2000);
 
